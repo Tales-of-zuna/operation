@@ -1,5 +1,6 @@
 "use client";
 import GaussJordanCalculation from "@/components/gauss_jordan/calculation";
+import SecondMethod from "@/components/gauss_jordan/secondMethod";
 import { Divider, Input, Tab, Tabs } from "@heroui/react";
 import { useEffect, useState } from "react";
 
@@ -67,10 +68,16 @@ const GaussJordan = () => {
             </div>
           </Tab>
 
-          <Tab key="result" title="Хариу">
+          <Tab key="result" title="Хариу( Global )">
             <div>Тооцоолол энд гарна</div>
             <div className="">
               <GaussJordanCalculation matrix={matrix} />
+            </div>
+          </Tab>
+          <Tab key="secondMethod" title="Хариу( 2-р хувиргалт )">
+            <div>Тооцоолол энд гарна</div>
+            <div className="">
+              <SecondMethod matrix={matrix} />
             </div>
           </Tab>
         </Tabs>
@@ -80,5 +87,3 @@ const GaussJordan = () => {
 };
 
 export default GaussJordan;
-
-// choloot ul medegdegch(allX-rang), undsen ul medegdegch (rang) mortei tentsuuleed hariu garahgui baival niitsgui
