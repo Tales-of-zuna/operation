@@ -2,37 +2,34 @@
 
 import { useEffect, useState } from "react";
 
-const GaussJordanCalculation = ({ matrix }: { matrix: number[][] }) => {
-  const [result, setResult] = useState<number[][]>([]);
-  const [solutions, setSolutions] = useState<number[] | null>(null);
+const GaussJordanCalculation = ({ matrix }: any) => {
+  const [rrefMatrix, setRrefMatrix] = useState<any[][]>([]);
+  const [solutions, setSolutions] = useState<any[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Gauss-Jordan Elimination for RREF
-  const gaussJordanElimination = (matrix: number[][]): number[][] => {
+  const gaussJordanElimination = (matrix: any[][]): any[][] => {
     const rows = matrix.length;
     const cols = matrix[0].length;
-    let a = matrix.map((row) => [...row]); // Deep copy
+    const a = matrix.map((row) => [...row]);
 
     for (let pivotRow = 0; pivotRow < rows; pivotRow++) {
-      // Step 1: Find Pivot
       let pivot = a[pivotRow][pivotRow];
       if (pivot === 0) {
-        // Attempt row swap if pivot is zero
         let swapRow = pivotRow + 1;
         while (swapRow < rows && a[swapRow][pivotRow] === 0) {
           swapRow++;
         }
-        if (swapRow === rows) continue; // No non-zero pivot, skip column
+        if (swapRow === rows) continue;
         [a[pivotRow], a[swapRow]] = [a[swapRow], a[pivotRow]];
         pivot = a[pivotRow][pivotRow];
       }
 
-      // Step 2: Normalize Pivot Row
-      for (let col = 0; col < cols; col++) {
-        a[pivotRow][col] /= pivot;
+      if (pivot !== 0) {
+        for (let col = 0; col < cols; col++) {
+          a[pivotRow][col] /= pivot;
+        }
       }
 
-      // Step 3: Eliminate Other Rows
       for (let row = 0; row < rows; row++) {
         if (row === pivotRow) continue;
         const factor = a[row][pivotRow];
@@ -44,32 +41,59 @@ const GaussJordanCalculation = ({ matrix }: { matrix: number[][] }) => {
     return a;
   };
 
-  // Extract solution from RREF matrix
-  const extractSolutions = (rref: number[][]): number[] | string => {
+  const extractSolutions = (rref: any[][]): any[] | string => {
     const rows = rref.length;
     const cols = rref[0].length;
-    const solutions: number[] = new Array(rows).fill(0);
+    const solutions: any[] = Array(rows).fill(0);
 
     for (let i = 0; i < rows; i++) {
-      // If pivot column doesn't match row, infinite solutions or no solution
-      let pivotCol = rref[i].findIndex((val) => val === 1);
-      if (pivotCol === -1) continue; // No pivot in this row (free variable)
+      const pivotCol = rref[i].findIndex((val) => Math.abs(val - 1) < 1e-10);
+      if (pivotCol === -1) continue;
 
       if (pivotCol === cols - 1) {
-        // Last column pivot means no solution
-        return "No Solution (Inconsistent system)";
+        return "Нийцгүй систем";
       }
 
-      solutions[pivotCol] = rref[i][cols - 1]; // Store solution
+      solutions[pivotCol] = rref[i][cols - 1];
     }
 
     return solutions;
   };
 
+  const renderMatrix = (matrix: any[][]) => (
+    <table style={{ borderCollapse: "collapse", margin: "1rem 0" }}>
+      <tbody>
+        {matrix.map((row, i) => (
+          <tr key={i}>
+            {row.map((val, j) => (
+              <td
+                key={j}
+                style={{
+                  border: "1px solid #ccc",
+                  padding: "5px",
+                  textAlign: "center",
+                }}
+              >
+                {val}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+
   useEffect(() => {
     try {
+      if (
+        matrix.length === 0 ||
+        matrix.some((row: any) => row.length !== matrix[0].length)
+      ) {
+        throw new Error("Матриц буруу бүтэцтэй байна.");
+      }
+
       const rref = gaussJordanElimination(matrix);
-      setResult(rref);
+      setRrefMatrix(rref);
 
       const solutionResult = extractSolutions(rref);
       if (typeof solutionResult === "string") {
@@ -80,30 +104,35 @@ const GaussJordanCalculation = ({ matrix }: { matrix: number[][] }) => {
         setSolutions(solutionResult);
       }
     } catch (err) {
-      setError("An error occurred during calculation.");
+      setError(err instanceof Error ? err.message : "Алдаа гарлаа.");
+      setSolutions(null);
     }
   }, [matrix]);
 
   return (
-    <div>
-      <h3>Gauss–Jordan Elimination Result (RREF):</h3>
-      <pre>{JSON.stringify(result)}</pre>
+    <div className="space-y-8">
+      <h3>Гаусс Жорданы хувиргалт</h3>
+
+      <h4>Хувиргалтын эцсийн матриц:</h4>
+      {rrefMatrix.length > 0 ? (
+        renderMatrix(rrefMatrix)
+      ) : (
+        <p>Шийдэл олдсонгүй.</p>
+      )}
 
       {error ? (
-        <div style={{ color: "red" }}>
-          <strong>Error:</strong> {error}
+        <div style={{ color: "red", fontWeight: "bold" }}>Алдаа: {error}</div>
+      ) : solutions ? (
+        <div>
+          <h4>Үл мэдэгдэгчийн утгууд (X):</h4>
+          {solutions.map((sol, idx) => (
+            <div key={idx}>
+              x<sub>{idx + 1}</sub> = {sol.toFixed(4)}
+            </div>
+          ))}
         </div>
       ) : (
-        solutions && (
-          <div>
-            <h4>Solutions (x-values):</h4>
-            {solutions.map((sol, idx) => (
-              <div key={idx}>
-                x<sub>{idx + 1}</sub> = {sol.toFixed(4)}
-              </div>
-            ))}
-          </div>
-        )
+        <p>Шийдэл олдсонгүй.</p>
       )}
     </div>
   );
