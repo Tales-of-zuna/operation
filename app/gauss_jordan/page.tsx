@@ -84,8 +84,6 @@ const GaussJordan = () => {
                 </p>
               )}
 
-              {/* b[i][j]=(a[i][j]*a[r][s]-a[i][s]*a[r][j])/(-a[r][s]) */}
-
               <Divider />
 
               <div className="flex flex-col items-center justify-center space-y-2">
