@@ -59,22 +59,6 @@ const GaussJordan = () => {
               <Divider />
               <div className="flex items-center justify-center space-x-4">
                 {rows && columns ? (
-                  <div className="space-y-4">
-                    {Array.from({ length: rows }, (_, i) => (
-                      <Input
-                        key={i}
-                        label={`Сул гишүүн ${i + 1}`}
-                        value={freeVariables[i]?.toString() || ""}
-                        onChange={(e) => {
-                          const newFreeVariables = [...freeVariables];
-                          newFreeVariables[i] = [e.target.value];
-                          setFreeVariables(newFreeVariables);
-                        }}
-                      />
-                    ))}
-                  </div>
-                ) : null}
-                {rows && columns ? (
                   <div
                     className="grid w-full gap-4"
                     style={{
@@ -100,6 +84,22 @@ const GaussJordan = () => {
                     Мөр, баганын тоог оруулна уу.
                   </p>
                 )}
+                {rows && columns ? (
+                  <div className="space-y-4">
+                    {Array.from({ length: rows }, (_, i) => (
+                      <Input
+                        key={i}
+                        label={`Сул гишүүн ${i + 1}`}
+                        value={freeVariables[i]?.toString() || ""}
+                        onChange={(e) => {
+                          const newFreeVariables = [...freeVariables];
+                          newFreeVariables[i] = [e.target.value];
+                          setFreeVariables(newFreeVariables);
+                        }}
+                      />
+                    ))}
+                  </div>
+                ) : null}
               </div>
               <Divider />
 

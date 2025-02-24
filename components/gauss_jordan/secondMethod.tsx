@@ -36,19 +36,18 @@ const SecondMethod = ({ matrix, freeVariables }: any) => {
         }
       }
 
-      // 3. Ялгагч баганын бусад элементийг хувиргах
       for (let i = 0; i < tempMatrix.length; i++) {
         if (i === row) continue;
 
         let factor = tempMatrix[i][pivotColumn];
-        // Гол элементийг ашиглан тухайн баганыг хувиргах
+        // 3. Ялгагч баганын бусад элементийг хувиргах
         tempMatrix[i][pivotColumn] = -factor / pivotElement;
 
         for (let j = 0; j < tempMatrix[i].length; j++) {
           if (j !== pivotColumn) {
             // 4. Ялгагч мөр баганын бус бусад элементүүд дараах томьёогоор хувирна. 𝑏ij=(𝑎𝑖𝑗*𝑎𝑟𝑠−𝑎𝑖𝑠*𝑎𝑟𝑗)/(−𝑎𝑟𝑠)
             tempMatrix[i][j] =
-              (tempMatrix[i][j] * pivotElement - factor * tempMatrix[row][j]) /
+              (tempMatrix[i][j] * pivotElement - tempMatrix[row][j] * factor) /
               -pivotElement;
           }
         }
@@ -56,20 +55,12 @@ const SecondMethod = ({ matrix, freeVariables }: any) => {
       steps.push(tempMatrix.map((row) => [...row])); // Алхам хадгалах
     }
 
+    console.log(pivotColumns);
     setTransformationSteps(steps); // Бүх хувиргалтын алхмуудыг хадгалах
     return tempMatrix;
   };
 
-  const findXvalues = (matrix: number[][], freeVariables: number[]) => {
-    for (let i = 0; i < matrix.length; i++) {
-      let row = matrix[i];
-      let sum = 0;
-      for (let j = 0; j < row.length - 1; j++) {
-        sum += row[j] * freeVariables[j];
-        console.log(`x${j}: sum`);
-      }
-    }
-  };
+  const findXvalues = (matrix: number[][], freeVariables: number[]) => {};
 
   useEffect(() => {
     const tempMatrix = matrix.map((row: any) => [...row]);
