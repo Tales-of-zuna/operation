@@ -116,6 +116,7 @@ const SecondMethod = ({ matrix, freeVariables }: any) => {
             </div>
           ))}
       </div>
+
       <Divider />
 
       <h3>Хувиргалтын Алхмууд</h3>
