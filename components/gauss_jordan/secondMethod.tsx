@@ -1,10 +1,6 @@
 "use client";
 import { Divider } from "@heroui/react";
 import { useEffect, useState } from "react";
-// 1. Гол элемент −ars –ийг урвуу хэмжигдэхүүн нь солино.
-// 2. Ялгагч мөрийн бусад элементийг гол элементэд хуваана.
-// 3. Ялгагч баганын бусад элементийг гол элементэд хувааж тэмдэгийг нь эсрэгээр өөрчилнө.
-// 4. Ялгагч мөр баганын бус бусад элементүүд дараах томьёогоор хувирна. b[i][j]=(a[i][j]*a[r][s]−a[i][s]*a[r][j])/(−a[r][s])
 const SecondMethod = ({ matrix, freeVariables }: any) => {
   const [transformedMatrix, setTransformedMatrix] = useState(matrix);
   const [transformationSteps, setTransformationSteps] = useState<number[][][]>(
@@ -31,16 +27,19 @@ const SecondMethod = ({ matrix, freeVariables }: any) => {
 
       let pivotElement = tempMatrix[row][pivotColumn];
 
+      // 1. Гол элемент −ars –ийг урвуу хэмжигдэхүүн нь солино.
       tempMatrix[row][pivotColumn] = 1 / pivotElement;
 
       for (let col = 0; col < tempMatrix[row].length; col++) {
         if (col !== pivotColumn) {
+          // 2. Ялгагч мөрийн бусад элементийг гол элементэд хуваана.
           tempMatrix[row][col] = tempMatrix[row][col] / pivotElement;
         }
       }
 
       for (let i = 0; i < tempMatrix.length; i++) {
         if (i !== row) {
+          // 3. Ялгагч баганын бусад элементийг гол элементэд хувааж тэмдэгийг нь эсрэгээр өөрчилнө.
           tempMatrix[i][pivotColumn] =
             -tempMatrix[i][pivotColumn] / pivotElement;
         }
@@ -50,12 +49,14 @@ const SecondMethod = ({ matrix, freeVariables }: any) => {
         if (i !== row) {
           for (let j = 0; j < tempMatrix[i].length; j++) {
             if (j !== pivotColumn) {
+              // 4. Ялгагч мөр баганын бус бусад элементүүд дараах томьёогоор хувирна. b[i][j]=(a[i][j]*a[r][s]−a[i][s]*a[r][j])/(−a[r][s])
               tempMatrix[i][j] =
-                (tempMatrix[i][j] * pivotElement -
+                ((tempMatrix[i][j] * pivotElement -
                   tempMatrix[i][pivotColumn] *
                     tempMatrix[row][j] *
                     pivotElement) /
-                pivotElement;
+                  pivotElement) *
+                -1;
             }
           }
         }
@@ -129,7 +130,7 @@ const SecondMethod = ({ matrix, freeVariables }: any) => {
                 {row.map((value, colIndex) => (
                   <div
                     key={colIndex}
-                    className="flex h-10 w-10 items-center justify-center border"
+                    className="flex h-14 w-14 items-center justify-center border"
                   >
                     {value}
                   </div>
@@ -145,11 +146,7 @@ const SecondMethod = ({ matrix, freeVariables }: any) => {
       <div className="space-y-4 p-4">
         <h3>Үл мэдэгдэгч хувсагчид</h3>
         <div>
-          {xValues.map((value, index) => (
-            <div key={index}>
-              x{index + 1}: {value}
-            </div>
-          ))}
+          {/* <GaussJordanCalculation matrix={matrix.push(freeVariables)} /> */}
         </div>
       </div>
     </div>
