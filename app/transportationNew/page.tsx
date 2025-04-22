@@ -1,6 +1,8 @@
 "use client";
+
+import React, { useState } from "react";
+
 export interface Step {
-  type: string;
   allocation: number[][];
   i: number;
   j: number;
@@ -17,8 +19,6 @@ export interface Solution {
   demands: number[];
   totalCost: number;
 }
-
-import React, { useState } from "react";
 
 const TransportationProblemSolver: React.FC = () => {
   const [sources, setSources] = useState<number>(3);
@@ -38,29 +38,33 @@ const TransportationProblemSolver: React.FC = () => {
   const [steps, setSteps] = useState<Step[]>([]);
   const [balanced, setBalanced] = useState<boolean>(true);
 
+  // nud bogloh
   const handleCostsChange = (i: number, j: number, value: string): void => {
     const newCosts = [...costsInput];
     newCosts[i][j] = value;
     setCostsInput(newCosts);
   };
 
+  // noots nemeh
   const handleSupplyChange = (i: number, value: string): void => {
     const newSupplies = [...suppliesInput];
     newSupplies[i] = value;
     setSuppliesInput(newSupplies);
   };
 
+  // heregtsee nemeh
   const handleDemandChange = (i: number, value: string): void => {
     const newDemands = [...demandsInput];
     newDemands[i] = value;
     setDemandsInput(newDemands);
   };
 
+  // bagana nemeh
   const handleSourcesChange = (value: string): void => {
     const numSources = parseInt(value);
     if (numSources > 0) {
       setSources(numSources);
-      const newCosts: string[][] = Array(numSources)
+      const newCosts = Array(numSources)
         .fill(null)
         .map((_, i) =>
           Array(destinations)
@@ -73,18 +77,19 @@ const TransportationProblemSolver: React.FC = () => {
         );
       setCostsInput(newCosts);
 
-      const newSupplies: string[] = Array(numSources)
+      const newSupplies = Array(numSources)
         .fill(null)
         .map((_, i) => (i < suppliesInput.length ? suppliesInput[i] : "0"));
       setSuppliesInput(newSupplies);
     }
   };
 
+  //  mor nemeh
   const handleDestinationsChange = (value: string): void => {
     const numDestinations = parseInt(value);
     if (numDestinations > 0) {
       setDestinations(numDestinations);
-      const newCosts: string[][] = Array(sources)
+      const newCosts = Array(sources)
         .fill(null)
         .map((_, i) =>
           Array(numDestinations)
@@ -97,13 +102,14 @@ const TransportationProblemSolver: React.FC = () => {
         );
       setCostsInput(newCosts);
 
-      const newDemands: string[] = Array(numDestinations)
+      const newDemands = Array(numDestinations)
         .fill(null)
         .map((_, i) => (i < demandsInput.length ? demandsInput[i] : "0"));
       setDemandsInput(newDemands);
     }
   };
 
+  // niilber bodoh
   const calculateTotalCost = (
     allocation: number[][],
     costs: number[][],
@@ -117,7 +123,8 @@ const TransportationProblemSolver: React.FC = () => {
     return totalCost;
   };
 
-  const northwestCornerMethod = (
+  // zuun deed bulangiin arga
+  const topLeftCornerMethod = (
     costs: number[][],
     supplies: number[],
     demands: number[],
@@ -125,13 +132,12 @@ const TransportationProblemSolver: React.FC = () => {
     const m = supplies.length;
     const n = demands.length;
 
-    const remainingSupplies: number[] = [...supplies];
-    const remainingDemands: number[] = [...demands];
+    const remainingSupplies = [...supplies];
+    const remainingDemands = [...demands];
 
-    const allocation: number[][] = Array(m)
+    const allocation = Array(m)
       .fill(null)
       .map(() => Array(n).fill(0));
-
     const solutionSteps: Step[] = [];
 
     let i = 0;
@@ -141,21 +147,20 @@ const TransportationProblemSolver: React.FC = () => {
       const supply = remainingSupplies[i];
       const demand = remainingDemands[j];
 
-      const allocation_ij = Math.min(supply, demand);
-      allocation[i][j] = allocation_ij;
+      const allocationValue = Math.min(supply, demand);
+      allocation[i][j] = allocationValue;
 
-      remainingSupplies[i] -= allocation_ij;
-      remainingDemands[j] -= allocation_ij;
+      remainingSupplies[i] -= allocationValue;
+      remainingDemands[j] -= allocationValue;
 
       solutionSteps.push({
-        type: "nwc",
         allocation: JSON.parse(JSON.stringify(allocation)),
         i,
         j,
-        allocatedValue: allocation_ij,
+        allocatedValue: allocationValue,
         remainingSupplies: [...remainingSupplies],
         remainingDemands: [...remainingDemands],
-        description: `Allocate ${allocation_ij} units from Source ${i + 1} to Destination ${j + 1}`,
+        description: `${allocationValue} нэгжийг Нөөц ${i + 1}-ээс Хэрэгцээ ${j + 1} рүү хуваарилав`,
       });
 
       if (remainingSupplies[i] === 0) {
@@ -179,11 +184,11 @@ const TransportationProblemSolver: React.FC = () => {
   };
 
   const solveTransportationProblem = (): void => {
-    const costs: number[][] = costsInput.map((row) =>
+    const costs = costsInput.map((row) =>
       row.map((cell) => parseInt(cell || "0")),
     );
-    const supplies: number[] = suppliesInput.map((val) => parseInt(val || "0"));
-    const demands: number[] = demandsInput.map((val) => parseInt(val || "0"));
+    const supplies = suppliesInput.map((val) => parseInt(val || "0"));
+    const demands = demandsInput.map((val) => parseInt(val || "0"));
 
     const totalSupply = supplies.reduce((sum, val) => sum + val, 0);
     const totalDemand = demands.reduce((sum, val) => sum + val, 0);
@@ -195,6 +200,7 @@ const TransportationProblemSolver: React.FC = () => {
     let adjustedSupplies = [...supplies];
     let adjustedDemands = [...demands];
 
+    // nootsiin too heregtseenii tootoi tentsuu baigaa esehiig shalgana
     if (!isBalanced) {
       if (totalSupply < totalDemand) {
         adjustedSupplies = [...supplies, totalDemand - totalSupply];
@@ -205,24 +211,23 @@ const TransportationProblemSolver: React.FC = () => {
       }
     }
 
-    const nwcSolution = northwestCornerMethod(
+    const solution = topLeftCornerMethod(
       adjustedCosts,
       adjustedSupplies,
       adjustedDemands,
     );
-
-    setSolution(nwcSolution);
+    setSolution(solution);
   };
 
   return (
-    <div className="flex h-screen w-screen flex-col items-center justify-center">
+    <div className="min-w-screen flex min-h-screen flex-col items-center justify-center">
       <h1 className="mb-6 text-2xl font-bold">
-        Тээврийн асуудлын шийдэл (Баруун дээд булангийн арга)
+        Тээврийн бодлого (Зүүн дээд булангийн арга)
       </h1>
 
       <div className="mb-6 grid grid-cols-2 gap-6">
         <div>
-          <label className="mb-2 block font-medium">Эх үүсвэрийн тоо:</label>
+          <label className="mb-2 block font-medium">Нөөцийн тоо (Ai):</label>
           <input
             type="number"
             min="1"
@@ -234,7 +239,7 @@ const TransportationProblemSolver: React.FC = () => {
         </div>
         <div>
           <label className="mb-2 block font-medium">
-            Хүргэлтийн цэгийн тоо:
+            Хэрэгцээний тоо (Bj):
           </label>
           <input
             type="number"
@@ -258,10 +263,10 @@ const TransportationProblemSolver: React.FC = () => {
                   .fill(null)
                   .map((_, j) => (
                     <th key={j} className="border p-2">
-                      ХЦ{j + 1}
+                      B{j + 1}
                     </th>
                   ))}
-                <th className="border p-2">Нийлүүлэлт</th>
+                <th className="border p-2">Нөөц</th>
               </tr>
             </thead>
             <tbody>
@@ -269,7 +274,7 @@ const TransportationProblemSolver: React.FC = () => {
                 .fill(null)
                 .map((_, i) => (
                   <tr key={i}>
-                    <td className="border p-2 font-medium">ЭҮ{i + 1}</td>
+                    <td className="border p-2 font-medium">A{i + 1}</td>
                     {Array(destinations)
                       .fill(null)
                       .map((_, j) => (
@@ -320,19 +325,16 @@ const TransportationProblemSolver: React.FC = () => {
 
       <button
         onClick={solveTransportationProblem}
-        className="-blue-600 hover:-blue-700 mb-6 rounded px-4 py-2 text-white"
+        className="mb-6 rounded px-4 py-2 text-white"
       >
         Шийдэх
       </button>
 
       {!balanced && solution && (
-        <div className="-yellow-100 mb-6 rounded border border-yellow-400 p-4">
+        <div className="mb-6 rounded border border-yellow-400 p-4">
           <p className="font-medium">
-            Тэмдэглэл: Асуудал тэнцвэргүй байна. Нийлүүлэлт болон хэрэгцээг
-            тэнцвэржүүлэхийн тулд хуурамч{" "}
-            {solution.supplies.length > sources
-              ? "эх үүсвэр"
-              : "хүргэлтийн цэг"}{" "}
+            Тэмдэглэл: Задгай бодлого байна. Битүү бодлого руу шилжүүлэхийн тулд
+            зохиомол {solution.supplies.length > sources ? "нөөц" : "хэрэгцээ"}{" "}
             нэмэгдсэн.
           </p>
         </div>
@@ -344,7 +346,7 @@ const TransportationProblemSolver: React.FC = () => {
 
           <div className="space-y-6">
             {steps.map((step, index) => (
-              <div key={index} className="-gray-50 rounded border p-4">
+              <div key={index} className="rounded border p-4">
                 <h3 className="mb-2 font-medium">
                   Алхам {index + 1}: {step.description}
                 </h3>
@@ -358,21 +360,23 @@ const TransportationProblemSolver: React.FC = () => {
                           .fill(null)
                           .map((_, j) => (
                             <th key={j} className="border p-2">
-                              ХЦ{j + 1}
+                              B{j + 1}
                             </th>
                           ))}
-                        <th className="border p-2">Үлдэгдэл нийлүүлэлт</th>
+                        <th className="border p-2">Үлдэгдэл нөөц</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {step.allocation.map((row: any, i: any) => (
+                      {step.allocation.map((row, i) => (
                         <tr key={i}>
-                          <td className="border p-2 font-medium">ЭҮ{i + 1}</td>
-                          {row.map((cell: any, j: any) => (
+                          <td className="border p-2 font-medium">A{i + 1}</td>
+                          {row.map((cell, j) => (
                             <td
                               key={j}
                               className={`border p-2 text-center ${
-                                i === step.i && j === step.j ? "-green-200" : ""
+                                i === step.i && j === step.j
+                                  ? "bg-green-200 text-black"
+                                  : ""
                               }`}
                             >
                               {cell}
@@ -387,7 +391,7 @@ const TransportationProblemSolver: React.FC = () => {
                         <td className="border p-2 font-medium">
                           Үлдэгдэл хэрэгцээ
                         </td>
-                        {step.remainingDemands.map((demand: any, j: any) => (
+                        {step.remainingDemands.map((demand, j) => (
                           <td key={j} className="border p-2 text-center">
                             {demand}
                           </td>
@@ -405,7 +409,7 @@ const TransportationProblemSolver: React.FC = () => {
 
       {solution && (
         <div className="mb-6">
-          <h2 className="mb-4 text-xl font-semibold">Эцсийн шийдэл</h2>
+          <h2 className="mb-4 text-xl font-semibold">Тулгуур төлөвлөгөө</h2>
 
           <div className="overflow-x-auto">
             <table className="mb-4 min-w-full border-collapse">
@@ -416,16 +420,16 @@ const TransportationProblemSolver: React.FC = () => {
                     .fill(null)
                     .map((_, j) => (
                       <th key={j} className="border p-2">
-                        ХЦ{j + 1}
+                        B{j + 1}
                       </th>
                     ))}
                 </tr>
               </thead>
               <tbody>
-                {solution.allocation.map((row: any, i: any) => (
+                {solution.allocation.map((row, i) => (
                   <tr key={i}>
-                    <td className="border p-2 font-medium">ЭҮ{i + 1}</td>
-                    {row.map((cell: any, j: any) => (
+                    <td className="border p-2 font-medium">A{i + 1}</td>
+                    {row.map((cell, j) => (
                       <td key={j} className="border p-2 text-center">
                         <div className="flex flex-col">
                           <span className="text-xs text-gray-500">
@@ -441,7 +445,7 @@ const TransportationProblemSolver: React.FC = () => {
             </table>
           </div>
 
-          <div className="-blue-100 rounded border border-blue-300 p-4">
+          <div className="rounded border border-blue-300 p-4">
             <p className="font-semibold">
               Нийт тээврийн зардал: {solution.totalCost}
             </p>

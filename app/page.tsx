@@ -16,10 +16,10 @@ const Home = () => {
         </Button>
         <Button
           onPress={() => {
-            router.push("/gauss_jordan");
+            router.push("/transportationNew");
           }}
         >
-          ...
+          Тээврийн бодлого
         </Button>
       </div>
     </div>
