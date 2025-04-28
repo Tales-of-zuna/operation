@@ -127,17 +127,17 @@ const VogelsApproximationSolver: React.FC = () => {
     return totalCost;
   };
 
-  // Торгуулийн хэмжээг тооцоолох функц (хоёр хамгийн бага утгын зөрүү)
+  // Зардлын ялгавар тооцоолох функц (хоёр хамгийн бага утгын зөрүү)
   const calculatePenalty = (costs: number[], isActive: boolean[]): number => {
     if (!isActive.some((active) => active)) {
-      return 0; // Бүх мөр/багана дүүрсэн бол торгууль 0
+      return 0; // Бүх мөр/багана дүүрсэн бол зардлын ялгавар 0
     }
 
     // Зөвхөн идэвхтэй элементүүдийн өртгийг авах
     const activeCosts = costs.filter((_, index) => isActive[index]);
 
     if (activeCosts.length <= 1) {
-      return 0; // Нэг л элемент үлдсэн бол торгууль 0
+      return 0; // Нэг л элемент үлдсэн бол зардлын ялгавар 0
     }
 
     // Хамгийн бага хоёр утгыг олох
@@ -192,7 +192,7 @@ const VogelsApproximationSolver: React.FC = () => {
           : 0,
       );
 
-      // Хамгийн их торгуультай эгнээ эсвэл баганыг сонгох
+      // Хамгийн их зардлын ялгавартай эгнээ эсвэл баганыг сонгох
       const maxRowPenalty = Math.max(...rowPenalties);
       const maxColPenalty = Math.max(...colPenalties);
 
@@ -200,7 +200,7 @@ const VogelsApproximationSolver: React.FC = () => {
       let selectedCol: number | null = null;
 
       if (maxRowPenalty >= maxColPenalty && maxRowPenalty > 0) {
-        // Хамгийн их торгуультай мөрийг сонгох
+        // Хамгийн их зардлын ялгавартай мөрийг сонгох
         selectedRow = rowPenalties.findIndex(
           (penalty) => penalty === maxRowPenalty,
         );
@@ -215,7 +215,7 @@ const VogelsApproximationSolver: React.FC = () => {
           }
         }
       } else if (maxColPenalty > 0) {
-        // Хамгийн их торгуультай баганыг сонгох
+        // Хамгийн их зардлын ялгавартай баганыг сонгох
         selectedCol = colPenalties.findIndex(
           (penalty) => penalty === maxColPenalty,
         );
@@ -230,7 +230,7 @@ const VogelsApproximationSolver: React.FC = () => {
           }
         }
       } else {
-        // Бүх торгууль 0 байвал эхний идэвхтэй нүдийг сонгох
+        // Бүх зардлын ялгавар 0 байвал эхний идэвхтэй нүдийг сонгох
         for (let i = 0; i < m; i++) {
           if (activeRows[i]) {
             selectedRow = i;
@@ -282,7 +282,7 @@ const VogelsApproximationSolver: React.FC = () => {
         colPenalties: [...colPenalties],
         selectedRow,
         selectedCol,
-        description: `${allocationValue} нэгжийг Нөөц ${selectedRow + 1}-ээс Хэрэгцээ ${selectedCol + 1} рүү хуваарилав (Мөрийн торгууль: ${rowPenalties[selectedRow]}, Баганын торгууль: ${colPenalties[selectedCol]})`,
+        description: `${allocationValue} нэгжийг Нөөц ${selectedRow + 1}-ээс Хэрэгцээ ${selectedCol + 1} рүү хуваарилав (Мөрийн зардлын ялгавар: ${rowPenalties[selectedRow]}, Баганын зардлын ялгавар: ${colPenalties[selectedCol]})`,
       });
     }
 
