@@ -447,7 +447,7 @@ const VogelsApproximationSolver: React.FC = () => {
       </button>
 
       {!balanced && solution && (
-        <div className="mb-6 rounded border border-yellow-400 bg-yellow-50 p-4">
+        <div className="mb-6 rounded border border-yellow-400 bg-yellow-50 p-4 text-black">
           <p className="font-medium">
             Тэмдэглэл: Задгай бодлого байна. Битүү бодлого руу шилжүүлэхийн тулд
             зохиомол {solution.supplies.length > sources ? "нөөц" : "хэрэгцээ"}{" "}
@@ -470,7 +470,7 @@ const VogelsApproximationSolver: React.FC = () => {
                 <div className="mb-4 grid grid-cols-2 gap-4">
                   <div>
                     <h4 className="mb-2 text-sm font-medium">
-                      Мөрийн торгуулиуд:
+                      Мөрийн зардлын ялгавар:
                     </h4>
                     <div className="flex flex-wrap gap-2">
                       {step.rowPenalties.map((penalty, i) => (
@@ -489,7 +489,7 @@ const VogelsApproximationSolver: React.FC = () => {
                   </div>
                   <div>
                     <h4 className="mb-2 text-sm font-medium">
-                      Баганын торгуулиуд:
+                      Баганын зардлын ялгавар:
                     </h4>
                     <div className="flex flex-wrap gap-2">
                       {step.colPenalties.map((penalty, j) => (
@@ -534,7 +534,7 @@ const VogelsApproximationSolver: React.FC = () => {
                                 i === step.i && j === step.j
                                   ? "bg-green-200 font-bold text-black"
                                   : cell > 0
-                                    ? "bg-green-50"
+                                    ? "bg-green-50 text-black"
                                     : ""
                               }`}
                             >
@@ -608,7 +608,7 @@ const VogelsApproximationSolver: React.FC = () => {
             </table>
           </div>
 
-          <div className="rounded border border-blue-300 bg-blue-50 p-4">
+          <div className="rounded border border-blue-300 bg-blue-50 p-4 text-black">
             <p className="font-semibold">
               Нийт тээврийн зардал: {solution.totalCost}
             </p>

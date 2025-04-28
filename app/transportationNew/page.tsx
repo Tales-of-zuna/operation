@@ -331,7 +331,7 @@ const TransportationProblemSolver: React.FC = () => {
       </button>
 
       {!balanced && solution && (
-        <div className="mb-6 rounded border border-yellow-400 p-4">
+        <div className="mb-6 rounded border border-yellow-400 p-4 text-black">
           <p className="font-medium">
             Тэмдэглэл: Задгай бодлого байна. Битүү бодлого руу шилжүүлэхийн тулд
             зохиомол {solution.supplies.length > sources ? "нөөц" : "хэрэгцээ"}{" "}
