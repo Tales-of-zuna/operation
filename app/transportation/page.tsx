@@ -1,12 +1,18 @@
 "use client";
+
+import React, { useState } from "react";
+
 export interface Step {
-  type: string;
   allocation: number[][];
   i: number;
   j: number;
   allocatedValue: number;
   remainingSupplies: number[];
   remainingDemands: number[];
+  rowPenalties: number[];
+  colPenalties: number[];
+  selectedRow: number | null;
+  selectedCol: number | null;
   description: string;
 }
 
@@ -18,9 +24,7 @@ export interface Solution {
   totalCost: number;
 }
 
-import React, { useState } from "react";
-
-const TransportationProblemSolver: React.FC = () => {
+const VogelsApproximationSolver: React.FC = () => {
   const [sources, setSources] = useState<number>(3);
   const [destinations, setDestinations] = useState<number>(3);
   const [costsInput, setCostsInput] = useState<string[][]>(
@@ -38,29 +42,33 @@ const TransportationProblemSolver: React.FC = () => {
   const [steps, setSteps] = useState<Step[]>([]);
   const [balanced, setBalanced] = useState<boolean>(true);
 
+  // Өртгийн матрицыг өөрчлөх
   const handleCostsChange = (i: number, j: number, value: string): void => {
     const newCosts = [...costsInput];
     newCosts[i][j] = value;
     setCostsInput(newCosts);
   };
 
+  // Нөөцийн хэмжээг өөрчлөх
   const handleSupplyChange = (i: number, value: string): void => {
     const newSupplies = [...suppliesInput];
     newSupplies[i] = value;
     setSuppliesInput(newSupplies);
   };
 
+  // Хэрэгцээний хэмжээг өөрчлөх
   const handleDemandChange = (i: number, value: string): void => {
     const newDemands = [...demandsInput];
     newDemands[i] = value;
     setDemandsInput(newDemands);
   };
 
+  // Нөөцийн тоог өөрчлөх
   const handleSourcesChange = (value: string): void => {
     const numSources = parseInt(value);
     if (numSources > 0) {
       setSources(numSources);
-      const newCosts: string[][] = Array(numSources)
+      const newCosts = Array(numSources)
         .fill(null)
         .map((_, i) =>
           Array(destinations)
@@ -73,18 +81,19 @@ const TransportationProblemSolver: React.FC = () => {
         );
       setCostsInput(newCosts);
 
-      const newSupplies: string[] = Array(numSources)
+      const newSupplies = Array(numSources)
         .fill(null)
         .map((_, i) => (i < suppliesInput.length ? suppliesInput[i] : "0"));
       setSuppliesInput(newSupplies);
     }
   };
 
+  // Хэрэгцээний тоог өөрчлөх
   const handleDestinationsChange = (value: string): void => {
     const numDestinations = parseInt(value);
     if (numDestinations > 0) {
       setDestinations(numDestinations);
-      const newCosts: string[][] = Array(sources)
+      const newCosts = Array(sources)
         .fill(null)
         .map((_, i) =>
           Array(numDestinations)
@@ -97,13 +106,14 @@ const TransportationProblemSolver: React.FC = () => {
         );
       setCostsInput(newCosts);
 
-      const newDemands: string[] = Array(numDestinations)
+      const newDemands = Array(numDestinations)
         .fill(null)
         .map((_, i) => (i < demandsInput.length ? demandsInput[i] : "0"));
       setDemandsInput(newDemands);
     }
   };
 
+  // Нийт зардлыг тооцоолох
   const calculateTotalCost = (
     allocation: number[][],
     costs: number[][],
@@ -117,7 +127,26 @@ const TransportationProblemSolver: React.FC = () => {
     return totalCost;
   };
 
-  const northwestCornerMethod = (
+  // Торгуулийн хэмжээг тооцоолох функц (хоёр хамгийн бага утгын зөрүү)
+  const calculatePenalty = (costs: number[], isActive: boolean[]): number => {
+    if (!isActive.some((active) => active)) {
+      return 0; // Бүх мөр/багана дүүрсэн бол торгууль 0
+    }
+
+    // Зөвхөн идэвхтэй элементүүдийн өртгийг авах
+    const activeCosts = costs.filter((_, index) => isActive[index]);
+
+    if (activeCosts.length <= 1) {
+      return 0; // Нэг л элемент үлдсэн бол торгууль 0
+    }
+
+    // Хамгийн бага хоёр утгыг олох
+    const sortedCosts = [...activeCosts].sort((a, b) => a - b);
+    return sortedCosts[1] - sortedCosts[0];
+  };
+
+  // Vogel's Approximation Method хэрэгжүүлэлт
+  const vogelsApproximationMethod = (
     costs: number[][],
     supplies: number[],
     demands: number[],
@@ -125,46 +154,136 @@ const TransportationProblemSolver: React.FC = () => {
     const m = supplies.length;
     const n = demands.length;
 
-    const remainingSupplies: number[] = [...supplies];
-    const remainingDemands: number[] = [...demands];
+    const remainingSupplies = [...supplies];
+    const remainingDemands = [...demands];
 
-    const allocation: number[][] = Array(m)
+    // Мөр болон баганын идэвхтэй төлөвийг хадгалах
+    const activeRows = Array(m).fill(true);
+    const activeCols = Array(n).fill(true);
+
+    const allocation = Array(m)
       .fill(null)
       .map(() => Array(n).fill(0));
 
     const solutionSteps: Step[] = [];
 
-    let i = 0;
-    let j = 0;
+    // Бүх хуваарилалт хийгдэх хүртэл давтах
+    while (
+      activeRows.some((active) => active) &&
+      activeCols.some((active) => active)
+    ) {
+      // Мөр бүрийн торгуулийн хэмжээг тооцоолох
+      const rowPenalties = activeRows.map((active, i) =>
+        active
+          ? calculatePenalty(
+              costs[i].map((cost, j) => (activeCols[j] ? cost : Infinity)),
+              costs[i].map((_, j) => activeCols[j]),
+            )
+          : 0,
+      );
 
-    while (i < m && j < n) {
-      const supply = remainingSupplies[i];
-      const demand = remainingDemands[j];
+      // Багана бүрийн торгуулийн хэмжээг тооцоолох
+      const colPenalties = activeCols.map((active, j) =>
+        active
+          ? calculatePenalty(
+              costs.map((row, i) => (activeRows[i] ? row[j] : Infinity)),
+              costs.map((_, i) => activeRows[i]),
+            )
+          : 0,
+      );
 
-      const allocation_ij = Math.min(supply, demand);
-      allocation[i][j] = allocation_ij;
+      // Хамгийн их торгуультай эгнээ эсвэл баганыг сонгох
+      const maxRowPenalty = Math.max(...rowPenalties);
+      const maxColPenalty = Math.max(...colPenalties);
 
-      remainingSupplies[i] -= allocation_ij;
-      remainingDemands[j] -= allocation_ij;
+      let selectedRow: number | null = null;
+      let selectedCol: number | null = null;
 
+      if (maxRowPenalty >= maxColPenalty && maxRowPenalty > 0) {
+        // Хамгийн их торгуультай мөрийг сонгох
+        selectedRow = rowPenalties.findIndex(
+          (penalty) => penalty === maxRowPenalty,
+        );
+
+        // Тухайн мөрөнд хамгийн бага өртөгтэй баганыг олох
+        let minCost = Infinity;
+
+        for (let j = 0; j < n; j++) {
+          if (activeCols[j] && costs[selectedRow][j] < minCost) {
+            minCost = costs[selectedRow][j];
+            selectedCol = j;
+          }
+        }
+      } else if (maxColPenalty > 0) {
+        // Хамгийн их торгуультай баганыг сонгох
+        selectedCol = colPenalties.findIndex(
+          (penalty) => penalty === maxColPenalty,
+        );
+
+        // Тухайн баганад хамгийн бага өртөгтэй мөрийг олох
+        let minCost = Infinity;
+
+        for (let i = 0; i < m; i++) {
+          if (activeRows[i] && costs[i][selectedCol] < minCost) {
+            minCost = costs[i][selectedCol];
+            selectedRow = i;
+          }
+        }
+      } else {
+        // Бүх торгууль 0 байвал эхний идэвхтэй нүдийг сонгох
+        for (let i = 0; i < m; i++) {
+          if (activeRows[i]) {
+            selectedRow = i;
+            break;
+          }
+        }
+
+        for (let j = 0; j < n; j++) {
+          if (activeCols[j]) {
+            selectedCol = j;
+            break;
+          }
+        }
+      }
+
+      if (selectedRow === null || selectedCol === null) {
+        break; // Хэрэв сонгох боломжгүй бол гарах
+      }
+
+      // Хуваарилах хэмжээг тодорхойлох
+      const supply = remainingSupplies[selectedRow];
+      const demand = remainingDemands[selectedCol];
+      const allocationValue = Math.min(supply, demand);
+
+      // Хуваарилалт хийх
+      allocation[selectedRow][selectedCol] = allocationValue;
+      remainingSupplies[selectedRow] -= allocationValue;
+      remainingDemands[selectedCol] -= allocationValue;
+
+      // Хэрэв нөөц дууссан бол тухайн мөрийг идэвхгүй болгох
+      if (remainingSupplies[selectedRow] === 0) {
+        activeRows[selectedRow] = false;
+      }
+
+      // Хэрэв хэрэгцээ дууссан бол тухайн баганыг идэвхгүй болгох
+      if (remainingDemands[selectedCol] === 0) {
+        activeCols[selectedCol] = false;
+      }
+
+      // Алхамын мэдээллийг хадгалах
       solutionSteps.push({
-        type: "nwc",
         allocation: JSON.parse(JSON.stringify(allocation)),
-        i,
-        j,
-        allocatedValue: allocation_ij,
+        i: selectedRow,
+        j: selectedCol,
+        allocatedValue: allocationValue,
         remainingSupplies: [...remainingSupplies],
         remainingDemands: [...remainingDemands],
-        description: `Allocate ${allocation_ij} units from Source ${i + 1} to Destination ${j + 1}`,
+        rowPenalties: [...rowPenalties],
+        colPenalties: [...colPenalties],
+        selectedRow,
+        selectedCol,
+        description: `${allocationValue} нэгжийг Нөөц ${selectedRow + 1}-ээс Хэрэгцээ ${selectedCol + 1} рүү хуваарилав (Мөрийн торгууль: ${rowPenalties[selectedRow]}, Баганын торгууль: ${colPenalties[selectedCol]})`,
       });
-
-      if (remainingSupplies[i] === 0) {
-        i++;
-      }
-
-      if (remainingDemands[j] === 0) {
-        j++;
-      }
     }
 
     setSteps(solutionSteps);
@@ -179,11 +298,11 @@ const TransportationProblemSolver: React.FC = () => {
   };
 
   const solveTransportationProblem = (): void => {
-    const costs: number[][] = costsInput.map((row) =>
+    const costs = costsInput.map((row) =>
       row.map((cell) => parseInt(cell || "0")),
     );
-    const supplies: number[] = suppliesInput.map((val) => parseInt(val || "0"));
-    const demands: number[] = demandsInput.map((val) => parseInt(val || "0"));
+    const supplies = suppliesInput.map((val) => parseInt(val || "0"));
+    const demands = demandsInput.map((val) => parseInt(val || "0"));
 
     const totalSupply = supplies.reduce((sum, val) => sum + val, 0);
     const totalDemand = demands.reduce((sum, val) => sum + val, 0);
@@ -195,34 +314,36 @@ const TransportationProblemSolver: React.FC = () => {
     let adjustedSupplies = [...supplies];
     let adjustedDemands = [...demands];
 
+    // Задгай бодлогыг битүү болгох
     if (!isBalanced) {
       if (totalSupply < totalDemand) {
+        // Хэрэв нийт нөөц хэрэгцээнээс бага бол зохиомол нөөц нэмэх
         adjustedSupplies = [...supplies, totalDemand - totalSupply];
         adjustedCosts = [...costs, Array(demands.length).fill(0)];
       } else {
+        // Хэрэв нийт нөөц хэрэгцээнээс их бол зохиомол хэрэгцээ нэмэх
         adjustedDemands = [...demands, totalSupply - totalDemand];
         adjustedCosts = costs.map((row) => [...row, 0]);
       }
     }
 
-    const nwcSolution = northwestCornerMethod(
+    const solution = vogelsApproximationMethod(
       adjustedCosts,
       adjustedSupplies,
       adjustedDemands,
     );
-
-    setSolution(nwcSolution);
+    setSolution(solution);
   };
 
   return (
-    <div className="flex h-screen w-screen flex-col items-center justify-center">
+    <div className="min-w-screen flex min-h-screen flex-col items-center justify-center">
       <h1 className="mb-6 text-2xl font-bold">
-        Тээврийн асуудлын шийдэл (Баруун дээд булангийн арга)
+        Тээврийн бодлого (Вогелийн арга)
       </h1>
 
       <div className="mb-6 grid grid-cols-2 gap-6">
         <div>
-          <label className="mb-2 block font-medium">Эх үүсвэрийн тоо:</label>
+          <label className="mb-2 block font-medium">Нөөцийн тоо (Ai):</label>
           <input
             type="number"
             min="1"
@@ -234,7 +355,7 @@ const TransportationProblemSolver: React.FC = () => {
         </div>
         <div>
           <label className="mb-2 block font-medium">
-            Хүргэлтийн цэгийн тоо:
+            Хэрэгцээний тоо (Bj):
           </label>
           <input
             type="number"
@@ -258,10 +379,10 @@ const TransportationProblemSolver: React.FC = () => {
                   .fill(null)
                   .map((_, j) => (
                     <th key={j} className="border p-2">
-                      ХЦ{j + 1}
+                      B{j + 1}
                     </th>
                   ))}
-                <th className="border p-2">Нийлүүлэлт</th>
+                <th className="border p-2">Нөөц</th>
               </tr>
             </thead>
             <tbody>
@@ -269,7 +390,7 @@ const TransportationProblemSolver: React.FC = () => {
                 .fill(null)
                 .map((_, i) => (
                   <tr key={i}>
-                    <td className="border p-2 font-medium">ЭҮ{i + 1}</td>
+                    <td className="border p-2 font-medium">A{i + 1}</td>
                     {Array(destinations)
                       .fill(null)
                       .map((_, j) => (
@@ -320,19 +441,16 @@ const TransportationProblemSolver: React.FC = () => {
 
       <button
         onClick={solveTransportationProblem}
-        className="-blue-600 hover:-blue-700 mb-6 rounded px-4 py-2 text-white"
+        className="mb-6 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
       >
         Шийдэх
       </button>
 
       {!balanced && solution && (
-        <div className="-yellow-100 mb-6 rounded border border-yellow-400 p-4">
+        <div className="mb-6 rounded border border-yellow-400 bg-yellow-50 p-4">
           <p className="font-medium">
-            Тэмдэглэл: Асуудал тэнцвэргүй байна. Нийлүүлэлт болон хэрэгцээг
-            тэнцвэржүүлэхийн тулд хуурамч{" "}
-            {solution.supplies.length > sources
-              ? "эх үүсвэр"
-              : "хүргэлтийн цэг"}{" "}
+            Тэмдэглэл: Задгай бодлого байна. Битүү бодлого руу шилжүүлэхийн тулд
+            зохиомол {solution.supplies.length > sources ? "нөөц" : "хэрэгцээ"}{" "}
             нэмэгдсэн.
           </p>
         </div>
@@ -344,10 +462,51 @@ const TransportationProblemSolver: React.FC = () => {
 
           <div className="space-y-6">
             {steps.map((step, index) => (
-              <div key={index} className="-gray-50 rounded border p-4">
+              <div key={index} className="rounded border p-4">
                 <h3 className="mb-2 font-medium">
                   Алхам {index + 1}: {step.description}
                 </h3>
+
+                <div className="mb-4 grid grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="mb-2 text-sm font-medium">
+                      Мөрийн торгуулиуд:
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {step.rowPenalties.map((penalty, i) => (
+                        <span
+                          key={i}
+                          className={`rounded border px-2 py-1 text-sm ${
+                            step.selectedRow === i
+                              ? "border-blue-300 bg-blue-100 text-black"
+                              : "border-gray-300"
+                          }`}
+                        >
+                          A{i + 1}: {penalty}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="mb-2 text-sm font-medium">
+                      Баганын торгуулиуд:
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {step.colPenalties.map((penalty, j) => (
+                        <span
+                          key={j}
+                          className={`rounded border px-2 py-1 text-sm ${
+                            step.selectedCol === j
+                              ? "border-blue-300 bg-blue-100 text-black"
+                              : "border-gray-300"
+                          }`}
+                        >
+                          B{j + 1}: {penalty}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
 
                 <div className="overflow-x-auto">
                   <table className="mb-4 min-w-full border-collapse">
@@ -358,27 +517,31 @@ const TransportationProblemSolver: React.FC = () => {
                           .fill(null)
                           .map((_, j) => (
                             <th key={j} className="border p-2">
-                              ХЦ{j + 1}
+                              B{j + 1}
                             </th>
                           ))}
-                        <th className="border p-2">Үлдэгдэл нийлүүлэлт</th>
+                        <th className="border p-2">Үлдэгдэл нөөц</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {step.allocation.map((row: any, i: any) => (
+                      {step.allocation.map((row, i) => (
                         <tr key={i}>
-                          <td className="border p-2 font-medium">ЭҮ{i + 1}</td>
-                          {row.map((cell: any, j: any) => (
+                          <td className="border p-2 font-medium">A{i + 1}</td>
+                          {row.map((cell, j) => (
                             <td
                               key={j}
                               className={`border p-2 text-center ${
-                                i === step.i && j === step.j ? "-green-200" : ""
+                                i === step.i && j === step.j
+                                  ? "bg-green-200 font-bold text-black"
+                                  : cell > 0
+                                    ? "bg-green-50"
+                                    : ""
                               }`}
                             >
                               {cell}
                             </td>
                           ))}
-                          <td className="border p-2 text-center">
+                          <td className="bord er p-2 text-center">
                             {step.remainingSupplies[i]}
                           </td>
                         </tr>
@@ -387,7 +550,7 @@ const TransportationProblemSolver: React.FC = () => {
                         <td className="border p-2 font-medium">
                           Үлдэгдэл хэрэгцээ
                         </td>
-                        {step.remainingDemands.map((demand: any, j: any) => (
+                        {step.remainingDemands.map((demand, j) => (
                           <td key={j} className="border p-2 text-center">
                             {demand}
                           </td>
@@ -405,7 +568,7 @@ const TransportationProblemSolver: React.FC = () => {
 
       {solution && (
         <div className="mb-6">
-          <h2 className="mb-4 text-xl font-semibold">Эцсийн шийдэл</h2>
+          <h2 className="mb-4 text-xl font-semibold">Тулгуур төлөвлөгөө</h2>
 
           <div className="overflow-x-auto">
             <table className="mb-4 min-w-full border-collapse">
@@ -416,22 +579,26 @@ const TransportationProblemSolver: React.FC = () => {
                     .fill(null)
                     .map((_, j) => (
                       <th key={j} className="border p-2">
-                        ХЦ{j + 1}
+                        B{j + 1}
                       </th>
                     ))}
                 </tr>
               </thead>
               <tbody>
-                {solution.allocation.map((row: any, i: any) => (
+                {solution.allocation.map((row, i) => (
                   <tr key={i}>
-                    <td className="border p-2 font-medium">ЭҮ{i + 1}</td>
-                    {row.map((cell: any, j: any) => (
+                    <td className="border p-2 font-medium">A{i + 1}</td>
+                    {row.map((cell, j) => (
                       <td key={j} className="border p-2 text-center">
                         <div className="flex flex-col">
                           <span className="text-xs text-gray-500">
                             Зардал: {solution.costs[i][j]}
                           </span>
-                          <span className="font-medium">{cell}</span>
+                          <span
+                            className={`font-medium ${cell > 0 ? "text-blue-600" : ""}`}
+                          >
+                            {cell > 0 ? cell : "-"}
+                          </span>
                         </div>
                       </td>
                     ))}
@@ -441,7 +608,7 @@ const TransportationProblemSolver: React.FC = () => {
             </table>
           </div>
 
-          <div className="-blue-100 rounded border border-blue-300 p-4">
+          <div className="rounded border border-blue-300 bg-blue-50 p-4">
             <p className="font-semibold">
               Нийт тээврийн зардал: {solution.totalCost}
             </p>
@@ -452,4 +619,4 @@ const TransportationProblemSolver: React.FC = () => {
   );
 };
 
-export default TransportationProblemSolver;
+export default VogelsApproximationSolver;

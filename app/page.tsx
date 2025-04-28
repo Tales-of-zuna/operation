@@ -12,14 +12,21 @@ const Home = () => {
             router.push("/gauss_jordan");
           }}
         >
-          Gauss Jordan
+          Гаусс Жордан
         </Button>
         <Button
           onPress={() => {
             router.push("/transportationNew");
           }}
         >
-          Тээврийн бодлого
+          Тээврийн бодлого (Зүүн дээд)
+        </Button>
+        <Button
+          onPress={() => {
+            router.push("/transportation");
+          }}
+        >
+          Тээврийн бодлого (Вогел)
         </Button>
       </div>
     </div>
