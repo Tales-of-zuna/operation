@@ -135,6 +135,7 @@ const TransportationProblemSolver: React.FC = () => {
     const remainingSupplies = [...supplies];
     const remainingDemands = [...demands];
 
+    // huviarlalt hiisen matrix hadgalah
     const allocation = Array(m)
       .fill(null)
       .map(() => Array(n).fill(0));
@@ -331,7 +332,7 @@ const TransportationProblemSolver: React.FC = () => {
       </button>
 
       {!balanced && solution && (
-        <div className="mb-6 rounded border border-yellow-400 p-4 text-black">
+        <div className="mb-6 rounded border border-yellow-400 p-4 text-white">
           <p className="font-medium">
             Тэмдэглэл: Задгай бодлого байна. Битүү бодлого руу шилжүүлэхийн тулд
             зохиомол {solution.supplies.length > sources ? "нөөц" : "хэрэгцээ"}{" "}

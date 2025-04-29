@@ -157,10 +157,11 @@ const VogelsApproximationSolver: React.FC = () => {
     const remainingSupplies = [...supplies];
     const remainingDemands = [...demands];
 
-    // Мөр болон баганын идэвхтэй төлөвийг хадгалах
+    // Мөр болон баганын идэвхтэй төлөвийг хадгалах matrix
     const activeRows = Array(m).fill(true);
     const activeCols = Array(n).fill(true);
 
+    // yavtsaa temdegleh matrix
     const allocation = Array(m)
       .fill(null)
       .map(() => Array(n).fill(0));
@@ -206,6 +207,7 @@ const VogelsApproximationSolver: React.FC = () => {
         // Тухайн мөрөнд хамгийн бага зардалтай баганыг олох
         let minCost = Infinity;
 
+        // hamgiin baga zardliig oloh
         for (let j = 0; j < n; j++) {
           if (activeCols[j] && costs[selectedRow][j] < minCost) {
             minCost = costs[selectedRow][j];
@@ -437,7 +439,7 @@ const VogelsApproximationSolver: React.FC = () => {
 
       <button
         onClick={solveTransportationProblem}
-        className="mb-6 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+        className="mb-6 rounded px-4 py-2 text-white hover:bg-blue-600"
       >
         Шийдэх
       </button>
