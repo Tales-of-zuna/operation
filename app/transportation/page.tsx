@@ -9,8 +9,8 @@ export interface Step {
   allocatedValue: number;
   remainingSupplies: number[];
   remainingDemands: number[];
-  rowPenalties: number[];
-  colPenalties: number[];
+  rowCs: number[];
+  colCs: number[];
   selectedRow: number | null;
   selectedCol: number | null;
   description: string;
@@ -128,7 +128,7 @@ const VogelsApproximationSolver: React.FC = () => {
   };
 
   // Зардлын ялгавар тооцоолох функц (хоёр хамгийн бага утгын зөрүү)
-  const calculatePenalty = (costs: number[], isActive: boolean[]): number => {
+  const calculateC = (costs: number[], isActive: boolean[]): number => {
     if (!isActive.some((active) => active)) {
       return 0; // Бүх мөр/багана дүүрсэн бол зардлын ялгавар 0
     }
@@ -145,8 +145,8 @@ const VogelsApproximationSolver: React.FC = () => {
     return sortedCosts[1] - sortedCosts[0];
   };
 
-  // Vogel's Approximation Method хэрэгжүүлэлт
-  const vogelsApproximationMethod = (
+  // Vogel ийн арга хэрэгжүүлэлт
+  const vogelMethod = (
     costs: number[][],
     supplies: number[],
     demands: number[],
@@ -172,20 +172,20 @@ const VogelsApproximationSolver: React.FC = () => {
       activeRows.some((active) => active) &&
       activeCols.some((active) => active)
     ) {
-      // Мөр бүрийн торгуулийн хэмжээг тооцоолох
-      const rowPenalties = activeRows.map((active, i) =>
+      // Мөр бүрийн зардлын ялгаварын хэмжээг тооцоолох
+      const rowCs = activeRows.map((active, i) =>
         active
-          ? calculatePenalty(
+          ? calculateC(
               costs[i].map((cost, j) => (activeCols[j] ? cost : Infinity)),
               costs[i].map((_, j) => activeCols[j]),
             )
           : 0,
       );
 
-      // Багана бүрийн торгуулийн хэмжээг тооцоолох
-      const colPenalties = activeCols.map((active, j) =>
+      // Багана бүрийн зардлын ялгаварыг тооцоолох
+      const colCs = activeCols.map((active, j) =>
         active
-          ? calculatePenalty(
+          ? calculateC(
               costs.map((row, i) => (activeRows[i] ? row[j] : Infinity)),
               costs.map((_, i) => activeRows[i]),
             )
@@ -193,19 +193,17 @@ const VogelsApproximationSolver: React.FC = () => {
       );
 
       // Хамгийн их зардлын ялгавартай эгнээ эсвэл баганыг сонгох
-      const maxRowPenalty = Math.max(...rowPenalties);
-      const maxColPenalty = Math.max(...colPenalties);
+      const maxRowC = Math.max(...rowCs);
+      const maxColC = Math.max(...colCs);
 
       let selectedRow: number | null = null;
       let selectedCol: number | null = null;
 
-      if (maxRowPenalty >= maxColPenalty && maxRowPenalty > 0) {
+      if (maxRowC >= maxColC && maxRowC > 0) {
         // Хамгийн их зардлын ялгавартай мөрийг сонгох
-        selectedRow = rowPenalties.findIndex(
-          (penalty) => penalty === maxRowPenalty,
-        );
+        selectedRow = rowCs.findIndex((c) => c === maxRowC);
 
-        // Тухайн мөрөнд хамгийн бага өртөгтэй баганыг олох
+        // Тухайн мөрөнд хамгийн бага зардалтай баганыг олох
         let minCost = Infinity;
 
         for (let j = 0; j < n; j++) {
@@ -214,13 +212,11 @@ const VogelsApproximationSolver: React.FC = () => {
             selectedCol = j;
           }
         }
-      } else if (maxColPenalty > 0) {
+      } else if (maxColC > 0) {
         // Хамгийн их зардлын ялгавартай баганыг сонгох
-        selectedCol = colPenalties.findIndex(
-          (penalty) => penalty === maxColPenalty,
-        );
+        selectedCol = colCs.findIndex((c) => c === maxColC);
 
-        // Тухайн баганад хамгийн бага өртөгтэй мөрийг олох
+        // Тухайн баганад хамгийн бага зардалтай мөрийг олох
         let minCost = Infinity;
 
         for (let i = 0; i < m; i++) {
@@ -278,11 +274,11 @@ const VogelsApproximationSolver: React.FC = () => {
         allocatedValue: allocationValue,
         remainingSupplies: [...remainingSupplies],
         remainingDemands: [...remainingDemands],
-        rowPenalties: [...rowPenalties],
-        colPenalties: [...colPenalties],
+        rowCs: [...rowCs],
+        colCs: [...colCs],
         selectedRow,
         selectedCol,
-        description: `${allocationValue} нэгжийг Нөөц ${selectedRow + 1}-ээс Хэрэгцээ ${selectedCol + 1} рүү хуваарилав (Мөрийн зардлын ялгавар: ${rowPenalties[selectedRow]}, Баганын зардлын ялгавар: ${colPenalties[selectedCol]})`,
+        description: `${allocationValue} нэгжийг Нөөц ${selectedRow + 1}-ээс Хэрэгцээ ${selectedCol + 1} рүү хуваарилав (Мөрийн зардлын ялгавар: ${rowCs[selectedRow]}, Баганын зардлын ялгавар: ${colCs[selectedCol]})`,
       });
     }
 
@@ -327,7 +323,7 @@ const VogelsApproximationSolver: React.FC = () => {
       }
     }
 
-    const solution = vogelsApproximationMethod(
+    const solution = vogelMethod(
       adjustedCosts,
       adjustedSupplies,
       adjustedDemands,
@@ -473,7 +469,7 @@ const VogelsApproximationSolver: React.FC = () => {
                       Мөрийн зардлын ялгавар:
                     </h4>
                     <div className="flex flex-wrap gap-2">
-                      {step.rowPenalties.map((penalty, i) => (
+                      {step.rowCs.map((c, i) => (
                         <span
                           key={i}
                           className={`rounded border px-2 py-1 text-sm ${
@@ -482,7 +478,7 @@ const VogelsApproximationSolver: React.FC = () => {
                               : "border-gray-300"
                           }`}
                         >
-                          A{i + 1}: {penalty}
+                          A{i + 1}: {c}
                         </span>
                       ))}
                     </div>
@@ -492,7 +488,7 @@ const VogelsApproximationSolver: React.FC = () => {
                       Баганын зардлын ялгавар:
                     </h4>
                     <div className="flex flex-wrap gap-2">
-                      {step.colPenalties.map((penalty, j) => (
+                      {step.colCs.map((c, j) => (
                         <span
                           key={j}
                           className={`rounded border px-2 py-1 text-sm ${
@@ -501,7 +497,7 @@ const VogelsApproximationSolver: React.FC = () => {
                               : "border-gray-300"
                           }`}
                         >
-                          B{j + 1}: {penalty}
+                          B{j + 1}: {c}
                         </span>
                       ))}
                     </div>
